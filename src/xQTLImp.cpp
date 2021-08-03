@@ -20,6 +20,7 @@ struct thread_data{
    long long int end;
   double maf;
   double lam;
+  double delta;
   int window_size;
 };
 
@@ -40,6 +41,7 @@ void *main_process(thread_data *threadarg , int num)
    	int chrom = my_data -> chrom;
 	double maf = my_data -> maf;
 	double lam  = my_data -> lam;
+	double delta = my_data -> delta;
 
 	ifstream fin(Xqtl_path.c_str());
 	fin.seekg(start);
@@ -121,9 +123,12 @@ void *main_process(thread_data *threadarg , int num)
 				vector<long long int>* p_useful_typed_snps = &useful_typed_snps;
 				vector<int> snps_flag;
 				vector<int>* p_snps_flag = &snps_flag;
+				// TSS of gene.
+				long long int start_pos = (*pos_map)[last_name][0];
 				values = zgenbt(p_maf_snps , maf , lam , p_snps_flag ,typed_snps, snp_map , convert_flags , impute_flags ,
-											hap , p_useful_typed_snps,
-				p_m_all_snps,p_m_typed_snps,values.last_sigma_it,values.row);
+                                hap , p_useful_typed_snps, p_m_all_snps,
+                                p_m_typed_snps,values.last_sigma_it,values.row,
+                                start_pos, delta);
 
 				impz(p_maf_snps , p_ignore_snps , chrom , out_dir , last_name , p_snps_flag , values.weight ,typed_snps, snp_map , impute_flags ,p_useful_typed_snps );
 				//final.start new recorder
@@ -169,8 +174,9 @@ int main(int argc , char *argv[])
 	char* EXCLUDE = NULL;
 	char* EXCLUDE_FILE = NULL;
 	char* SORT = NULL;
+	char* DELTA = NULL;
 
-	const char *const short_options = "hx:m:v:o:t:f:l:w:c:e:b:s:";
+	const char *const short_options = "hx:m:v:o:t:f:l:w:c:e:b:s:d";
 	const struct option long_options[] = {
 	{"help", 0, NULL, 'h'},
 	{"xQTL", 1, NULL, 'x'},
@@ -185,6 +191,7 @@ int main(int argc , char *argv[])
 	{"exclude" , 1 , NULL , 'e'},
 	{"exclude_file" , 1  , NULL , 'b'},
 	{"sort" , 1 , NULL , 's'},
+	{"delta" , 1 , NULL , 'd'},
 	{NULL, 0, NULL, 0 }
 	};
 
@@ -242,6 +249,9 @@ int main(int argc , char *argv[])
 			case 's'://region for imputation
 				SORT = (char*)strdup(optarg);
 				break;
+		     case 'd':
+		         DELTA = (char*)strdup(optarg);
+		         break;
 			case '?':
 				print_usage (stdout, 1);
 				break;
@@ -273,6 +283,7 @@ int main(int argc , char *argv[])
 	double maf = 0.01;
 	double lam = 0.1;
 	int window_size = 500000;
+	double delta = 0;
 
 	if(EXCLUDE == NULL)
 	{
@@ -354,6 +365,15 @@ int main(int argc , char *argv[])
     {
         cout << "wrong parameter for --sort/-s\n";
         exit(0);
+    }
+
+    if(DELTA == NULL)
+    {
+        delta = 0.0;
+    }
+    else
+    {
+        delta = double(atof(DELTA));
     }
 
 	//load pos_map
@@ -479,6 +499,7 @@ int main(int argc , char *argv[])
 			td[ii].maf = maf;
 			td[ii].lam = lam;
 			td[ii].window_size = window_size;
+			td[ii].delta = delta;
 			tasks[ii] = thread(main_process , td + ii ,ii);
 		}
 	// To make sure all sub-threads are finished in each chromosome, because they share the same memory of the reference panel

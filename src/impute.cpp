@@ -3,7 +3,8 @@
 ans zgenbt(vector<typed_snp> *p_maf_snps , double maf , double lam , vector<int>* p_snps_flag ,vector<typed_snp> typed_snps,vector<ref_snp> all_snps,
 vector<char> convert_flags,vector<char> impute_flags , 
 	vector<string> haps,vector<long long int>* p_useful_typed_snps,
-	map<long long int, int> *p_m_all_snps,map<long long int,int> *p_m_typed_snps , double** last_sigma_it ,int row)
+	map<long long int, int> *p_m_all_snps,map<long long int,int> *p_m_typed_snps ,
+	double** last_sigma_it ,int row, long long int start_pos, double delta)
 {
 	vector<string>* p_haps = &haps;
 	size_t num_typed_snps = typed_snps.size();
@@ -127,6 +128,7 @@ vector<char> convert_flags,vector<char> impute_flags ,
 
 		///////////////////////compute the weight/////////////////////////////
 		// for SNPs that need imputation
+		double coef = 1.0;
 		if(impute_flags[idx] == 1) 
 		{
 			// get sigma_it
@@ -176,7 +178,10 @@ vector<char> convert_flags,vector<char> impute_flags ,
 					// valid because sigma_t_inv is symmetric
 					beta[i] += sigma_it[j]*sigma_t_inv[num_snps*i+j];
 				}
-				weight[index1][i] = beta[i];
+
+				pos_t snp_pos = all_snps[idx].snp_pos;
+				coef = 1.0 / (1 + exp((snp_pos - start_pos) - delta));
+				weight[index1][i] = beta[i] * coef;
 			}
 		}
 		// for SNPs that don't need imputation
@@ -209,8 +214,7 @@ vector<char> convert_flags,vector<char> impute_flags ,
 					var += beta[i]*beta[j]*sigma_t[num_snps*i+j];
 				}
 			}
-			weight[index1][num_snps] = var;
-			
+			weight[index1][num_snps] = var * coef;
 		}
 		// for SNPs that don't need imputation
 		else {
