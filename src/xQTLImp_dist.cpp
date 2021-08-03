@@ -176,7 +176,7 @@ int main(int argc , char *argv[])
 	char* SORT = NULL;
 	char* DELTA = NULL;
 
-	const char *const short_options = "hx:m:v:o:t:f:l:w:c:e:b:s:d";
+	const char *const short_options = "hx:m:v:o:t:f:l:w:c:e:b:s:d:";
 	const struct option long_options[] = {
 	{"help", 0, NULL, 'h'},
 	{"xQTL", 1, NULL, 'x'},

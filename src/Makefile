@@ -2,9 +2,9 @@
 
 CPP      = g++
 CC       = gcc
-OBJ      = xQTLImp.o utils.o impute.o load_info.o comp.o
-LINKOBJ  =  xQTLImp.o utils.o impute.o load_info.o comp.o
-BIN      =  xQTLImp
+OBJ      = xQTLImp_dist.o utils.o impute.o load_info.o comp.o
+LINKOBJ  =  xQTLImp_dist.o utils.o impute.o load_info.o comp.o
+BIN      =  xQTLImp_dist
 
 $(BIN): $(OBJ)
 	$(CPP) $(LINKOBJ) -o $(BIN) $(LIBS) -lz -pthread 
@@ -16,8 +16,8 @@ impute.o: impute.cpp
 	$(CPP) -c impute.cpp -o impute.o $(CXXFLAGS) -std=c++11
 
 
-xQTLImp.o: xQTLImp.cpp
-	$(CPP) -c xQTLImp.cpp -o xQTLImp.o $(CXXFLAGS) -std=c++11
+xQTLImp_dist.o: xQTLImp_dist.cpp
+	$(CPP) -c xQTLImp_dist.cpp -o xQTLImp_dist.o $(CXXFLAGS) -std=c++11
 
 load_info.o: load_info.cpp
 	$(CPP) -c load_info.cpp -o load_info.o $(CXXFLAGS) -std=c++11
